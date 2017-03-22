@@ -9,6 +9,7 @@ def parse_articles(articles):
     news = []
     for i in articles['response']['docs']:
         dic = {}
+        dic['url'] = i['web_url']
         dic['headline'] = i['headline']['main'].encode("utf8")
         dic['section'] = i['section_name']
         #dic['author'] = i['byline']['original'].encode("utf8")
@@ -59,7 +60,7 @@ def sanitize_section_input(sinput, section):
         section.append('N.Y.')
     elif sinput == 'Sports' or sinput == '2':
         section.append('Sports')
-    elif sinput == 'U.S' or sinput == '3':
+    elif sinput == 'U.S.' or sinput == '3':
         section.append('U.S.')
     elif sinput == 'Business Day' or sinput == '4':
         section.append('Business')
@@ -109,13 +110,17 @@ def sanitize_section_input(sinput, section):
         section.append('Climate')
     
 def main():
+    txt = open("nyt_headlines.txt", "w")
+
     api = articleAPI('45862958eff543bb9555201274493184')
     sections = which_sections()
-    print sections
     article_list = get_articles(api, sections)
     count = 0
     for i in article_list:
-        print str(count) + ": " + i['section']
+        txt.write(i['headline'] + ". ")
+        print str(count) + ": " + i['headline']
+        print "     url: " + i['url']
+        print
         count += 1
 
 if __name__ == '__main__':
