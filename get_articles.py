@@ -2,6 +2,9 @@
 
 from datetime import datetime
 from nytimesarticle import articleAPI
+from nltk.tag import pos_tag
+from nltk.tree import Tree
+from nltk.chunk import ne_chunk
 import time
 
 
@@ -12,6 +15,7 @@ def parse_articles(articles):
         dic['url'] = i['web_url']
         dic['headline'] = i['headline']['main'].encode("utf8")
         dic['section'] = i['section_name']
+        dic['lead'] = i['lead_paragraph']
         #dic['author'] = i['byline']['original'].encode("utf8")
         if dic['section'] != None:
             news.append(dic)
@@ -108,20 +112,40 @@ def sanitize_section_input(sinput, section):
         section.append('Science')
     elif sinput == 'Climate' or sinput == '26':
         section.append('Climate')
-    
+
+def get_proper_nouns(alist): 
+    proper_list = []
+    count = 0
+    for i in alist:
+        phrase = i['lead']
+        head_tags = pos_tag(phrase.split())
+        p_n = [word for word, pos in head_tags if pos == 'NNP']
+        proper_list.append(p_n)
+        
+        print str(count + 1) + ": " + i['headline']
+        print "     url: " + i['url']
+        print
+
+        count += 1
+    return proper_list
+
 def main():
-    txt = open("nyt_headlines.txt", "w")
+    txt = open("keywords.txt", "w")
 
     api = articleAPI('45862958eff543bb9555201274493184')
     sections = which_sections()
     article_list = get_articles(api, sections)
-    count = 0
-    for i in article_list:
-        txt.write(i['headline'] + ". ")
-        print str(count) + ": " + i['headline']
-        print "     url: " + i['url']
-        print
-        count += 1
+
+    proper_list = get_proper_nouns(article_list)
+    
+    pref_list = []
+    while True:
+        pref = raw_input("Which articles sound interesting? ")
+        if pref == '-': break
+        pref_num = int(pref) - 1
+        for i in proper_list[pref_num]:
+            txt.write(i + '\n')
+
 
 if __name__ == '__main__':
     main()
